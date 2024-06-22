@@ -1,112 +1,170 @@
+"use client";
+
+import { useState } from "react";
+import { pengisiSuara } from "./constants/dataSuara";
 import Image from "next/image";
 
 export default function Home() {
+  const [selectVoice, setSelectVoice] = useState(false);
+  const [name, setName] = useState("Pilih pengisi suara");
+  const [value, setValue] = useState("");
+  const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleConvert = async () => {
+    if (!inputText) {
+      setError("Mohon masukkan teks terlebih dahulu.");
+      return;
+    }
+    if (!value) {
+      setError("Mohon pilih pengisi suara terlebih dahulu.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputText,
+          selectVoice: value,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Mendapatkan blob dari response
+      const blob = await response.blob();
+
+      // Membuat URL untuk blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Membuat elemen anchor untuk download
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = "output.mp3";
+
+      // Menambahkan ke DOM, mengklik, dan menghapus
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error:", error);
+      setError("Terjadi kesalahan saat mengkonversi teks ke suara.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
+    <main className="w-full h-screen mx-auto px-4 py-4 flex flex-col md:flex-col">
+      <div className="flex flex-row gap-4 items-end">
+        <h1 className="text-2xl font-bold tracking-wide">
+          Aplikasi Text to Speech
+        </h1>
+        <p className="text-sm">
+          (Copas text ke kolom di bawah, pilih pengisi suara, lalu convert.)
         </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </div>
+
+      <div className="md:flex-row flex w-full h-screen pt-3">
+        <textarea
+          placeholder="Masukkan text disini"
+          className="focus:outline-none resize-none h-64 md:h-full bg-white outline-1 stroke-blue-500 text-black px-5 py-3 rounded-lg w-full mb-4 md:mb-0"
+          onChange={(e) => setInputText(e.target.value)}
+          value={inputText}
+        ></textarea>
+        <div className="w-full md:w-3/12 md:ps-5 flex flex-col gap-4">
+          <div className="inline-block text-left w-full relative">
+            <button
+              type="button"
+              className="bg-white text-black text-sm flex flex-row w-full rounded-md h-11 items-center justify-between px-3"
+              id="menu-button"
+              aria-expanded={selectVoice}
+              aria-haspopup="true"
+              onClick={() => setSelectVoice(!selectVoice)}
+            >
+              {name}
+              <svg
+                className="-mr-1 h-5 w-5 text-gray-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+            {selectVoice && (
+              <div className="absolute mt-[1px] w-full bg-white z-10">
+                <div
+                  className="py-1"
+                  role="menu"
+                  aria-orientation="vertical"
+                  aria-labelledby="menu-button"
+                  tabIndex={-1}
+                >
+                  {pengisiSuara.map((talent, index) => (
+                    <div
+                      key={talent.value}
+                      onClick={() => {
+                        setName(talent.nama);
+                        setValue(talent.value);
+                        setSelectVoice(false);
+                      }}
+                    >
+                      <div className="flex flex-row items-center px-2 py-2">
+                        <Image
+                          src={talent.image}
+                          alt={`Gambar ${talent.nama}`}
+                          width={30}
+                          height={30}
+                        />
+                        <a
+                          href="#"
+                          className="block ps-3 text-sm text-gray-700"
+                          role="menuitem"
+                          tabIndex={-1}
+                          id={`menu-item-${index}`}
+                        >
+                          {talent.nama}
+                        </a>
+                      </div>
+                      {index < pengisiSuara.length - 1 && (
+                        <div className="border-[1px] border-gray-100 mx-2" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            className={`bg-blue-500 hover:bg-blue-600 text-white w-full h-11 rounded-md transition ${
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={handleConvert}
+            disabled={isLoading}
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+            {isLoading ? "Memproses..." : "Convert to MP3"}
+          </button>
+
+          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
         </div>
-      </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
       </div>
     </main>
   );
