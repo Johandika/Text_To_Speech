@@ -78,6 +78,7 @@
 //     );
 //   }
 // }
+
 import { NextRequest, NextResponse } from "next/server";
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 
@@ -130,7 +131,10 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error:", error);
     return NextResponse.json(
-      { message: "Failed to create audio file.", error: error.message },
+      {
+        message: "Failed to create audio file.",
+        error: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }
