@@ -68,7 +68,7 @@ export default function Home() {
 
   return (
     <main className="w-full h-screen mx-auto px-4 py-4 flex flex-col md:flex-col">
-      <div className="flex flex-row gap-4 items-end">
+      <div className="flex flex-col items-start md:flex-row gap-1 md:gap-4 md:items-end">
         <h1 className="text-2xl font-bold tracking-wide">
           Aplikasi Text to Speech
         </h1>
@@ -77,7 +77,7 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="md:flex-row flex w-full h-screen pt-3">
+      <div className="flex-col md:flex-row flex w-full h-screen pt-3">
         <textarea
           placeholder="Masukkan text disini"
           className="focus:outline-none resize-none h-64 md:h-full bg-white outline-1 stroke-blue-500 text-black px-5 py-3 rounded-lg w-full mb-4 md:mb-0"
