@@ -78,11 +78,10 @@
 //     );
 //   }
 // }
-
 import { NextRequest, NextResponse } from "next/server";
-import textToSpeech from "@google-cloud/text-to-speech";
+import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 
-const client = new textToSpeech.TextToSpeechClient({
+const client = new TextToSpeechClient({
   credentials: {
     type: "service_account",
     project_id: process.env.GOOGLE_PROJECT_ID,
@@ -104,16 +103,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const requestConfig: textToSpeech.protos.google.cloud.texttospeech.v1.ISynthesizeSpeechRequest =
-      {
-        input: { text: inputText },
-        voice: {
-          languageCode: "id-ID",
-          name: selectVoice,
-          ssmlGender: "MALE" as const,
-        },
-        audioConfig: { audioEncoding: "MP3" as const },
-      };
+    const requestConfig = {
+      input: { text: inputText },
+      voice: {
+        languageCode: "id-ID",
+        name: selectVoice,
+        ssmlGender: "MALE" as const,
+      },
+      audioConfig: { audioEncoding: "MP3" as const },
+    };
 
     const [response] = await client.synthesizeSpeech(requestConfig);
 
