@@ -80,7 +80,7 @@ export default function Home() {
       <div className="flex-col md:flex-row flex w-full h-screen pt-3">
         <textarea
           placeholder="Masukkan text disini"
-          className="focus:outline-none resize-none h-64 md:h-full bg-white outline-1 stroke-blue-500 text-black px-2 md:px-5 py-2 md:py-3 rounded-lg w-full mb-4 md:mb-0 text-sm md:text-base "
+          className="focus:outline-none resize-none h-64 md:h-full bg-white outline-1 stroke-blue-500 text-black px-3 md:px-5 py-3 md:py-3 rounded-lg w-full mb-4 md:mb-0 text-sm md:text-base "
           onChange={(e) => setInputText(e.target.value)}
           value={inputText}
         />
